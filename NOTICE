@@ -1,0 +1,39 @@
+Mettings uses:
+
+- Mygo 0.7.1 (github.com/egoist/mygo), MIT license.
+- sherpa-onnx 2.0.1 (github.com/k2-fsa/sherpa-onnx), Apache-2.0.
+  Native header and library license: native/include/SHERPA-LICENSE.
+- ONNX Runtime (github.com/microsoft/onnxruntime), MIT license.
+  License: native/include/ONNXRUNTIME-LICENSE.
+
+The setup wizard downloads model and media components from their distributors:
+- Qwen3-ASR-0.6B and Qwen3-ASR-1.7B, Qwen team / Alibaba, Apache-2.0.
+  The 1.7B ONNX conversion is distributed by
+  https://huggingface.co/thieunv-asilla/sherpa-onnx-qwen3-asr-1.7B-int8
+  at revision 69eb686fd94a4a865bb5340a3d6ac0d7f1fec0d5, using the
+  Wasser1462/Qwen3-ASR-onnx exporter. Each artifact is SHA-256 pinned.
+  The 0.6B native int8 ONNX export is
+  distributed through sherpa-onnx (asr-models release).
+- FireRedASR2-AED, FireRedTeam / Rednote, Apache-2.0.
+  Native int8 export through sherpa-onnx; original source:
+  https://github.com/FireRedTeam/FireRedASR2S
+  License: native/include/FIRERED-ASR-LICENSE.
+- Alibaba SenseVoice, exported through sherpa-onnx (asr-models release).
+- 3D-Speaker CAM++ (speaker-recongition-models release).
+- Silero VAD, native speech activity detector through sherpa-onnx.
+  Source/model: https://github.com/snakers4/silero-vad (MIT).
+- Pyannote segmentation 3.0 (speaker-segmentation-models release, MIT).
+  The model's license is installed under runtime/licenses/pyannote-LICENSE.
+- FFmpeg 9.0 Apple Silicon, OSXExperts standalone build, GPL-enabled.
+  Download/build distributor: https://www.osxexperts.net/
+  FFmpeg source and licensing: https://ffmpeg.org/legal.html
+
+Session contracts, corrections, alias normalization and speaker-label workflow
+were rewritten in Go from the user's original volc-transcribe-share project.
+No Python runtime or source modules are included in this application.
+No credentials, recordings, personal dictionaries or voiceprints are bundled.
+
+Visual tokens follow the user's InlineExplain project. The Mettings icon was
+redesigned for this app using OpenAI image generation with InlineExplain and
+Peekturn as style references. The matching template menu-bar glyph is original
+vector geometry in assets/tray.svg and scripts/render-tray.swift.

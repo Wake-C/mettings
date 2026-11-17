@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mettings</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<a class="skip" href="#main">跳到转写稿</a>
+<div id="workspace" class="workspace">
+ <aside>
+  <header class="brand"><h1 lang="en">Mettings</h1><button id="settings" class="quiet">设置</button></header>
+  <section class="capture" aria-label="录音控制">
+   <div class="mode-switch" role="group" aria-label="录音模式"><button id="mode-meeting" aria-pressed="true">会议录音</button><button id="mode-desk" aria-pressed="false">桌边守候</button></div>
+   <div class="capture-status"><span id="listening-dot" aria-hidden="true" hidden></span><p id="phase" role="status">就绪</p></div>
+   <div id="timer" hidden>00:00</div>
+   <p id="desk-metrics" class="capture-metrics" hidden></p>
+   <button id="record" class="primary" disabled>开始录音</button>
+   <label class="check-row"><input id="auto-asr" type="checkbox"><span id="auto-asr-label">结束后自动转写</span></label>
+   <p id="capture-note" class="capture-note">仅保存音频。</p>
+   <div id="capture-tools" hidden><p id="capture-tools-note" class="field-note"></p><button id="install-capture">准备录音组件</button></div>
+   <p id="queue-status" class="capture-note" role="status" hidden></p>
+   <details class="import-disclosure"><summary>导入已有音频</summary><div class="import-actions"><button id="import">选择文件</button><button id="show-url" class="quiet">使用链接</button></div><form id="url-form" hidden><label>音频链接<input id="audio-url" type="url" required placeholder="https://…"></label><button type="submit" id="download-audio">导入并保存</button></form></details>
+  </section>
+  <label class="search"><span>录音与讨论</span><input id="search" type="search" placeholder="搜索录音与讨论" autocomplete="off"></label>
+  <button id="pending-filter" class="quiet" aria-pressed="false">待确认声音 · 0</button><nav id="sessions" aria-label="录音与讨论"></nav>
+  <footer><button id="archive" class="quiet">会议目录</button><span>录音保存在本机</span></footer>
+ </aside>
+ <main id="main">
+  <section id="onboarding" class="onboarding" hidden>
+   <img src="icon.png" width="88" height="88" alt="Mettings 图标">
+   <p class="eyebrow">本地组件</p><h2>安装组件</h2>
+   <p class="muted">按需安装录音与转写组件。</p>
+   <label class="model-choice">本地转写模型<select id="setup-model"><option value="qwen3">Qwen3-ASR 0.6B</option></select></label><ul class="component-list"><li><span>语音转写</span><strong id="setup-model-label">Qwen3-ASR 0.6B · int8</strong></li><li><span>声纹与分段</span><strong>CAM++ / Pyannote</strong></li><li><span>录音与格式转换</span><strong>FFmpeg</strong></li></ul>
+   <p class="field-note"><span id="setup-download-size">首次准备约 940 MB</span>。组件来自 sherpa-onnx 与 OSXExperts。安装后可离线使用，录音不会上传。</p>
+   <p id="setup-name" role="status"></p><progress id="setup-progress" max="100" value="0" hidden></progress>
+   <p id="setup-error" class="error" role="alert" hidden></p>
+   <div class="actions"><button id="install" class="primary">安装转写组件</button><button id="cancel-install" hidden>取消下载</button><button id="setup-browse" class="quiet">先浏览录音</button></div>
+  </section>
+  <div id="empty" class="empty"><span class="eyebrow">录音</span><h2>还没有录音</h2><p>开始录音或导入音频文件。</p><button id="setup" class="quiet">配置转写引擎 ↗</button></div>
+  <section id="archive-browser" class="archive-browser" hidden>
+   <header class="document-header"><p class="eyebrow">本机会议档案</p><h2>会议目录</h2><p id="archive-location" class="field-note"></p><div class="actions"><button id="archive-up">返回上一级</button><button id="archive-refresh" class="quiet">刷新</button><button id="archive-settings" class="quiet">更改位置</button><button id="archive-session" class="quiet" hidden>阅读转写稿</button></div></header>
+   <nav id="breadcrumbs" aria-label="目录位置"></nav>
+   <div id="archive-entries" aria-label="文件与文件夹"></div><p id="archive-empty" class="muted" hidden>此目录为空。</p>
+   <section id="file-preview" class="transcript" hidden><div class="section-title"><h3 id="file-name"></h3><button id="file-close" class="quiet">收起</button></div><div id="file-content"></div></section>
+   <p id="archive-play-status" class="muted" role="status"></p><button id="archive-stop" class="quiet" hidden>停止播放</button>
+  </section>
+  <article id="detail" hidden>
+   <header class="document-header"><p id="date" class="eyebrow"></p><h2 id="title"></h2><div id="stages" class="stages"></div><div class="actions"><button id="play">播放录音</button><button id="stop-play" class="quiet">停止播放</button><button id="folder" class="quiet">会话文件</button><button id="rename" class="quiet">重命名</button><button id="regenerate-title" class="quiet" hidden>AI 生成标题</button></div><p id="title-status" class="field-note" role="status" hidden></p></header>
+   <p id="session-metrics" class="field-note" hidden></p>
+   <p id="timestamp-note" class="field-note" hidden>历史时间按音频片段的保存时间估算。</p>
+   <section class="transcription-controls" aria-label="转写控制">
+    <div class="transcribe-row"><label for="transcribe-model">转写模型</label><div class="row"><select id="transcribe-model" aria-label="本次转写模型"></select><button id="transcribe" class="primary">生成转写稿</button></div></div>
+    <p id="model-note" class="field-note"></p><button id="transcribe-setup" class="quiet" hidden>安装或配置转写模型</button>
+    <p id="attempt-status" class="attempt-status" role="status" hidden></p><button id="retry" class="quiet" hidden>重试最近失败版本</button>
+    <label id="version-row" class="version-row" hidden>查看版本<select id="transcript-version"></select></label><p id="version-status" class="field-note" hidden></p>
+   </section>
+   <form id="rename-form" class="rename-row" hidden><label>录音标题<input id="rename-title" maxlength="20" required></label><button type="submit">保存标题</button><button type="button" id="rename-cancel" class="quiet">取消</button></form>
+   <p id="session-error" class="error" role="alert" hidden></p><p id="warning" class="notice" hidden></p>
+   <section id="speakers" hidden><div class="speaker-section-heading"><h3>说话人</h3><button id="match-voices" type="button" class="quiet">重新匹配</button></div><p id="voice-library-status" class="field-note"></p><p class="field-note">相似声音合并展示。确认姓名将应用于组内片段，可展开逐段检查。</p><p id="voice-match-status" class="muted" role="status" hidden></p><div id="speaker-list"></div><datalist id="names"></datalist></section>
+   <section id="transcript-section" class="transcript"><div class="section-title"><h3>转写稿</h3><button id="copy" class="quiet">复制</button></div><div id="transcript"></div></section>
+  </article>
+ </main>
+</div>
+<main id="preferences" class="preferences" hidden>
+ <header class="preferences-header"><h1>设置</h1></header>
+ <div class="settings-tabs" role="tablist" aria-label="设置分类">
+  <button type="button" id="settings-tab-basic" role="tab" aria-selected="true" aria-controls="settings-basic" tabindex="0">基础</button>
+  <button type="button" id="settings-tab-advanced" role="tab" aria-selected="false" aria-controls="settings-advanced" tabindex="-1">高级</button>
+ </div>
+ <form id="settings-form" novalidate>
+  <div class="settings-panels">
+   <div id="settings-basic" role="tabpanel" aria-labelledby="settings-tab-basic">
+    <div class="settings-readiness"><span id="recording-readiness" role="status">正在检查录音组件…</span><button type="button" id="prepare-recording" class="quiet" hidden>准备录音与守候</button></div>
+    <section class="basic-section"><h2>录音与保存</h2>
+     <label for="device">麦克风</label><div class="settings-field-action"><select id="device"><option value="default">跟随系统默认麦克风 · 推荐</option></select><button type="button" id="devices" class="quiet">刷新</button></div><p id="device-note" class="field-note visually-hidden">跟随 macOS 当前选择的输入设备。</p>
+     <label for="root">保存位置</label><div class="settings-field-action folder-setting"><input id="root" readonly aria-describedby="folder-note"><button type="button" id="choose-root">更改</button></div><p id="folder-note" class="field-note visually-hidden">已有录音不会移动。</p>
+    </section>
+    <section class="basic-section"><div class="settings-heading"><h2>本机转写</h2><span class="setting-badge">离线可用</span></div>
+     <label class="visually-hidden" for="local-model">本地模型</label><select id="local-model"><option value="qwen3">Qwen3-ASR 0.6B</option></select>
+     <div class="model-preparation"><p id="model-description" class="field-note"></p><span id="local-model-status" role="status"></span><button type="button" id="prepare-model" class="quiet" hidden>安装此模型</button></div>
+     <p id="online-route-note" class="field-note" hidden></p><button type="button" id="manage-provider" class="quiet" hidden>管理在线服务</button>
+    </section>
+    <section class="basic-section"><h2>录音后如何处理</h2>
+     <label class="setting-toggle"><span><strong>会议结束后自动转写</strong><small>关闭时仅保存音频。</small></span><input id="settings-meeting-auto" type="checkbox" role="switch"></label>
+     <label class="setting-toggle"><span><strong>桌边守候时自动转写</strong><small>持续追加本地转写。</small></span><input id="settings-desk-auto" type="checkbox" role="switch"></label>
+    </section>
+    <button type="button" id="recommended-settings" class="quiet recommended-settings">使用推荐设置</button>
+   </div>
+   <div id="settings-advanced" role="tabpanel" aria-labelledby="settings-tab-advanced" hidden>
+    <details class="settings-disclosure" id="provider-section"><summary><span>在线转写服务</span><small id="provider-summary">默认关闭</small></summary><div class="disclosure-body">
+     <p class="field-note">本机转写无需账号。选择在线服务后，音频会发送给该服务；密钥仅保存在 macOS Keychain。</p>
+     <label>转写方式<select id="kind"><option value="local">本机离线 · 推荐</option><option value="compatible">OpenAI 兼容服务</option><option value="firered2-llm">FireRedASR2-LLM · 8B+ 服务</option><option value="volc">Volcengine SeedASR</option></select></label>
+     <p id="firered-service-note" class="field-note" hidden>需要已部署的 FireRedASR2-LLM 服务，不是本机内置模型。音频每 30 秒分段发送；桌边自动转写仍使用本机模型。</p>
+     <div id="cloud-fields" hidden><label>服务地址<input id="endpoint" type="url" placeholder="https://your-provider.example/v1" autocomplete="url"></label>
+      <div id="compatible-fields"><label>模型名称<input id="model" placeholder="服务提供的模型名称"></label><label>返回内容<select id="format"><option value="json">文本 · 通用</option><option value="verbose_json">带时间戳的分段</option><option value="diarized_json">带说话人的分段</option></select></label><p class="field-note">请选服务支持的格式。说话人识别需要服务返回说话人分段。</p></div>
+      <label>API / Access key<input id="key" type="password" autocomplete="new-password" placeholder="留空保留已有密钥"></label>
+      <div id="volc-fields" hidden><label>App key<input id="app-key" type="password" autocomplete="new-password" placeholder="留空保留已有密钥"></label><label>资源 ID<input id="resource" placeholder="volc.seedasr.auc"></label></div>
+     </div>
+    </div></details>
+    <details class="settings-disclosure" id="title-section"><summary><span>自动命名</span><small id="title-summary">默认使用转写稿首句</small></summary><div class="disclosure-body">
+     <p class="field-note">留空时使用转写稿首句。配置后，首次转写及结束时会发送一段转写稿生成标题，也可在录音详情中手动生成。</p>
+     <label>标题服务地址<input id="title-endpoint" type="url" placeholder="https://your-provider.example/v1"></label><label>标题模型<input id="title-model" placeholder="兼容 Chat Completions 的模型"></label><label>标题服务密钥<input id="title-key" type="password" autocomplete="new-password" placeholder="留空保留已有密钥"></label><div class="inline-actions"><button type="button" id="test-title">测试连接</button><button type="button" id="local-titles" class="quiet">改用转写稿首句</button></div><p id="title-test-status" class="field-note" role="status" aria-live="polite"></p>
+    </div></details>
+    <details class="settings-disclosure" id="vocabulary-section"><summary><span>常用词与姓名</span><small>可留空</small></summary><div class="disclosure-body">
+     <label>常用词<textarea id="hotwords" rows="3" placeholder="每行一个，例如产品名称或专业术语"></textarea></label><p class="field-note">用于 Qwen3 与在线服务的识别提示。SenseVoice 不支持热词提示。</p>
+     <label>纠错词<textarea id="corrections" rows="3" placeholder="错词=正确词，每行一组"></textarea></label><p class="field-note">转写后统一替换，所有模型都可使用。</p>
+     <label>姓名别名<textarea id="aliases" rows="3" spellcheck="false" placeholder="小王=王明&#10;PM=产品经理"></textarea></label><p class="field-note">每行“别名=姓名”，把不同称呼统一成同一个人。</p>
+    </div></details>
+    <details class="settings-disclosure" id="recognition-section"><summary><span>说话人识别参数</span><small id="threshold-summary">推荐 0.6</small></summary><div class="disclosure-body">
+     <label>声纹匹配阈值<input id="voice-threshold" type="number" min="0.000001" max="1" step="any" value="0.6" required></label><p class="field-note">推荐 0.6。提高数值会减少自动匹配，让更多声音等待手动确认。</p><button type="button" id="reset-threshold" class="quiet">恢复为 0.6</button>
+    </div></details>
+    <details class="settings-disclosure" id="components-section"><summary><span>组件管理</span><small id="components-summary">正在检查…</small></summary><div class="disclosure-body">
+     <p id="component-status" class="field-note" role="status"></p><p class="field-note">组件由应用管理，无需填写工具路径。只录音不需要安装转写模型。</p><div class="actions"><button type="button" id="advanced-capture-install">准备录音与守候</button><button type="button" id="repair">安装所选本地模型</button></div>
+    </div></details>
+   </div>
+  </div>
+  <div class="settings-save-area"><p id="settings-error" class="error" role="alert" hidden></p><div class="save-row"><p id="save-status" role="status">正在读取设置…</p><button id="save-settings" class="primary" type="submit" disabled>保存设置</button></div></div>
+ </form>
+</main>
+<div id="error" class="error-banner" role="alert" hidden><span></span><button class="quiet" aria-label="关闭错误提示">关闭</button></div>
+<script src="state.js"></script><script src="preferences-state.js"></script><script src="preferences.js"></script><script src="app.js"></script>
+</body></html>
